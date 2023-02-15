@@ -22,6 +22,10 @@
 	page {
 		background-color: #f5f5f5;
 	}
+  // 使用手机的字体 （手机自定义字体也可以识别）
+  body {
+  font-family: Helvetica Neue, Helvetica, sans-serif;
+  }
 
 	/* #endif */
 	.example-info {
@@ -29,4 +33,5 @@
 		color: #333;
 		padding: 10px;
 	}
+  
 </style>

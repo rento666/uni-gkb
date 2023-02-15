@@ -13,6 +13,15 @@ const app = new Vue({
 app.$mount()
 // #endif
 
+// 封装弹窗方法
+uni.$showMsg = function (title = '数据加载失败！' , duration = 1500) {
+  uni.showToast({
+    title,
+    duration,
+    icon: 'none'
+  })
+}
+
 // #ifdef VUE3
 import { createSSRApp } from 'vue'
 import App from './App.vue'

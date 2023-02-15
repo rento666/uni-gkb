@@ -103,7 +103,8 @@
 	$uni-primary: #2979ff !default;
 
 	.uni-section {
-		background-color: #fff;
+		// background-color: #fff;
+    background-color: #ededed;
     .uni-section-header {
       position: relative;
       /* #ifndef APP-NVUE */
@@ -145,7 +146,8 @@
         flex-direction: column;
         flex: 1;
         color: #333;
-
+        font-weight: 700;
+        
         .distraction {
           flex-direction: row;
           align-items: center;

@@ -1,9 +1,8 @@
 {
-  "lazyCodeLoading": "requiredComponents",
   "pages": [{
     "path": "pages/home/home",
     "style": {
-      "navigationBarTitleText": "健康自测",
+      "navigationBarTitleText": "首页",
       "enablePullDownRefresh": false
     }
 
@@ -11,16 +10,103 @@
     "path": "pages/news/news",
     "style": {
       "navigationBarTitleText": "资讯",
-      "enablePullDownRefresh": false
+      "enablePullDownRefresh": true,
+      "onReachBottomDistance": 150
     }
 
   }, {
     "path": "pages/my/my",
     "style": {
-      "navigationBarTitleText": "",
+      "navigationBarTitleText": "个人中心",
       "enablePullDownRefresh": false
     }
 
+  }],
+  "subPackages": [{
+      "root": "subpkg",
+      "pages": [{
+        "path" : "articles_detail/articles_detail",
+        "style" : {
+          "navigationBarTitleText": "",
+          "enablePullDownRefresh": false,
+          "app-plus":{
+          	"softinputMode":"adjustResize"
+          }
+        }
+      }
+        ,{
+                    "path" : "home_jkzc/home_jkzc",
+                    "style" :                                                                                    
+                {
+                    "navigationBarTitleText": "",
+                    "enablePullDownRefresh": false
+                }
+                
+                }
+                ,{
+                    "path" : "home_bgjd/home_bgjd",
+                    "style" :                                                                                    
+                {
+                    "navigationBarTitleText": "",
+                    "enablePullDownRefresh": false
+                }
+                
+                }
+                ,{
+                    "path" : "home_sm/home_sm",
+                    "style" :                                                                                    
+                {
+                    "navigationBarTitleText": "",
+                    "enablePullDownRefresh": false
+                }
+                
+                }
+                ,{
+                    "path" : "home_ys/home_ys",
+                    "style" :                                                                                    
+                {
+                    "navigationBarTitleText": "",
+                    "enablePullDownRefresh": false
+                }
+                
+                }
+                ,{
+                    "path" : "home_yd/home_yd",
+                    "style" :                                                                                    
+                {
+                    "navigationBarTitleText": "",
+                    "enablePullDownRefresh": false
+                }
+                
+                }
+                ,{
+                    "path" : "my_info/my_info",
+                    "style" :                                                                                    
+                {
+                    "navigationBarTitleText": "",
+                    "enablePullDownRefresh": false
+                }
+                
+                }
+                ,{
+                    "path" : "my_home/my_home",
+                    "style" :                                                                                    
+                {
+                    "navigationBarTitleText": "",
+                    "enablePullDownRefresh": false
+                }
+                
+                }
+                ,{
+                    "path" : "my_wqsj/my_wqsj",
+                    "style" :                                                                                    
+                {
+                    "navigationBarTitleText": "",
+                    "enablePullDownRefresh": false
+                }
+                
+                }
+            ]
   }],
   "globalStyle": {
     "navigationBarTextStyle": "black",
@@ -28,14 +114,16 @@
     "navigationBarBackgroundColor": "#F8F8F8",
     "backgroundColor": "#F8F8F8",
     "app-plus": {
-      "background": "#efeff4"
-    }
+      "background": "#efeff4",
+      "softinputNavBar": "none"
+    },
+    "navigationStyle": "custom"
   },
   "tabBar": {
     "list": [
       {
         "pagePath": "pages/home/home",
-        "text": "健康自测",
+        "text": "首页",
         "iconPath": "static/tab_icons/home.png",
         "selectedIconPath": "static/tab_icons/home-active.png"
       },

@@ -150,7 +150,8 @@
 			border-radius: 4px;
 			.uni-card__cover-image {
 				flex: 1;
-				// width: 100%;
+				width: 100%;
+        max-height: 424rpx;   // 自己设置的，最大高度，初始没有这一项
 				/* #ifndef APP-PLUS */
 				vertical-align: middle;
 				/* #endif */
