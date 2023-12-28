@@ -56,13 +56,15 @@
           </template>
         </uni-list-item>
       </uni-list>
-      <button form-type="submit" class="save-btn">保存</button>
+      <button form-type="submit" class="save-btn">添加</button>
     </form>
   </view>
 </template>
 
 <script>
+  import { getUserInfo } from '@/common/utils/auth.js'
   import graceChecker from '../../common/graceChecker.js'
+  import api from '@/common/api/api.js'
   export default {
     name:"rt-home",
     data() {
@@ -93,14 +95,23 @@
         if(type === 'start'){
           year = year - 90;
         }else if (type === 'end') {
-          year = year + 2;
+          // year = year + 2;
+          year = year;
         }
         month = month > 9 ? month : '0' + month;
         day = day > 9 ? day : '0' + day;
         return `${year}-${month}-${day}`;
       },
+      getAge(birthday){
+        //出生时间 毫秒
+        var birthDayTime = new Date(birthday).getTime(); 
+        //当前时间 毫秒
+        var nowTime = new Date().getTime(); 
+        //一年毫秒数(365 * 86400000 = 31536000000)
+        return Math.ceil((nowTime-birthDayTime)/31536000000);
+      },
       save(e){
-        console.log('form发生了submit事件，携带数据为：' + JSON.stringify(e.detail.value))
+        var that = this
         //定义表单规则
         var rule = [
             {name:"username", checkType : "notnull", checkRule:"",  errorMsg:"请填写姓名"},
@@ -110,9 +121,21 @@
         var formData = e.detail.value;
         var checkRes = graceChecker.check(formData, rule);
         if(checkRes){
-            uni.showToast({title:"保存成功", icon:'success'});
+          var user = getUserInfo()
+          formData.userid = user.userid
+          formData.age = that.getAge(formData.birthday)
+          api.addFamily(formData).then(res=>{
+            if(res.code == 200){
+              uni.$showMsg("添加成功",'success');
+            }else{
+              uni.$showMsg('添加失败')
+            }
+            setTimeout(function(){
+              that.$emit('close','close')
+            },500)
+          })
         }else{
-            uni.showToast({ title: graceChecker.error, icon: "none" });
+          uni.$showMsg(graceChecker.error,'none');
         }
       },
     }

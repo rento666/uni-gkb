@@ -6,7 +6,7 @@
         <view class="footer">{{footer}}</view>
       </view>
       <view class="img">
-        <image :src=img ></image>
+        <image :src='img'></image>
       </view>
     </view>
   </view>

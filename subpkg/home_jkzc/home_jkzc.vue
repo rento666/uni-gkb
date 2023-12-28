@@ -9,11 +9,25 @@
 </template>
 
 <script>
+  import {getToken,getUserInfo} from '@/common/utils/auth.js'
   export default {
     data() {
       return {
-        
       };
+    },
+    onLoad() {
+      // 如果没有token，或者没有选择性别，则弹窗提示
+      if(!getToken()){
+        this.showTips()
+      }
+      var user = getUserInfo()
+      if(!user){
+        this.showTips()
+      }else{
+        if(!user.sex){
+          this.showTips()
+        }
+      }
     },
     methods: {
       // 导航栏返回事件
@@ -22,6 +36,19 @@
           delta: 1
         })
       },
+      // 展示提示消息
+      showTips(){
+        uni.showModal({
+          title: '提示',
+          content: '登录并选择性别后再来自测吧',
+          showCancel: false,
+          complete() {
+            uni.switchTab({
+              url: '/pages/my/my'
+            })
+          }
+        })
+      }
     }
   }
 </script>

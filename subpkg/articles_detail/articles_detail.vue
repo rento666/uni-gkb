@@ -8,15 +8,15 @@
         <view class="header">
           <text class="title">{{article.title}}</text>
           <view class="sub-title">
-            <text class="author">{{article.author}}</text>
-            <text class="time">{{article.time}}</text>
+            <text class="author">{{article.user}}</text>
+            <text class="time" preview={true}>{{article.time}}</text>
           </view>
         </view>
         <!-- 文章内容 -->
         <view class="content">
-          <bctos-rich-text :nodes="article.content" ></bctos-rich-text>
+          <rich-text :nodes="article.content" ></rich-text>
         </view>
-<!--        分享、点赞、评论
+       <!-- 分享、点赞、评论 -->
         <view class="btn-border">
           <view class="btn">
             <uni-icons type="redo" size="26" color="#576b95"></uni-icons>
@@ -30,9 +30,9 @@
             <uni-icons :type="comment ? `chatbubble` : `chatbubble-filled`" size="26" color="#576b95"></uni-icons>
             <text>评论</text>
           </view>
-        </view> -->
+        </view>
       </view>
-<!--      评论 / 输入框
+     <!-- 评论 / 输入框 -->
       <view class="comment" :style="{minHeight: comment ? `50px` : mh + `px`}">
         <view class="header">
           <text>{{ comment ? '评论' : '写评论' }}</text>
@@ -42,19 +42,19 @@
         focus autoHeight v-model="value" placeholder="写下你的想法吧~"
         @focus="focus" @blur="blur" @keyboardheightchange="changekb"
         ></uni-easyinput>
-      </view> -->
+      </view>
       <lt-back-top v-if="!comment" />
     </view>
   </view>
 </template>
 
 <script>
-  import * as j_data from '../../common/jia_data.js'
+  import {getArticle} from '@/common/utils/auth.js'
   // 导入组件        
   import LtBackTop from '@/components/lt-back-top/lt-back-top.vue'
   // 导入mixin
   import backMixins from '@/components/lt-back-top/back-mixins.js'
-import timer from '../../common/timeUtils.js';
+
   export default {
     mixins: [backMixins],
     components: { LtBackTop },
@@ -68,8 +68,12 @@ import timer from '../../common/timeUtils.js';
       };
     },
     onLoad(e) {
-      this.getArticle(e.id)
-      this.setminheight()
+      if(e.id){
+        this.getArticle(e.id)
+        this.setminheight()
+      }else{
+        uni.switchTab({url: '/pages/news/news'})
+      }
     },
     methods: {
       setminheight(){
@@ -81,11 +85,10 @@ import timer from '../../common/timeUtils.js';
         })
       },
       getArticle(id) {
-        let data = j_data.news_articleDetail
+        let data = getArticle()
         data.forEach(item => {
           if(item.id.toString() === id) {
             let d = JSON.parse(JSON.stringify(item))
-            d.time = timer(d.time)
             this.article = d
             return
           }

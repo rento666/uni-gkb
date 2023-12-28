@@ -3,7 +3,7 @@
     <view class="wrapper">
       <form @submit="save">
         <uni-list>
-          <uni-list-item v-for="(item,i) in userinfo" :key="i">
+          <uni-list-item v-for="(item,i) in btnList" :key="i">
             <template v-slot:header>
               <view class="slot-box">
                 <text class="slot-box slot-text">{{item.title}}</text>
@@ -15,16 +15,16 @@
                 <image class="slot-image" :src="avatarUrl" mode='aspectFill'></image>
               </button>
               <!-- 昵称 input -->
-              <input name="nickName" v-if="item.type == 'nickName'" class="slot-input" type="nickname" placeholder="请输入" />
+              <input name="nickName" v-if="item.type == 'nickName'" class="slot-input" type="nickname" placeholder="请输入" :value="nickName" />
               <!-- 姓名 input -->
-              <input name="username" v-if="item.type == 'input'" class="slot-input" type="text" placeholder="请输入" />
+              <input name="username" v-if="item.type == 'input'" class="slot-input" type="text" placeholder="请输入" :value="username" />
               <!-- 性别 radio -->
-              <radio-group name="gender"  v-if="item.type == 'radio'">
+              <radio-group name="sex"  v-if="item.type == 'radio'">
                 <label class="radio">
-                  <radio value="1" /><text>男</text>
+                  <radio value="0" :checked="sex == '0'" /><text>男</text>
                 </label>
                 <label class="radio">
-                  <radio value="2" /><text>女</text>
+                  <radio value="1" :checked="sex == '1'" /><text>女</text>
                 </label>
               </radio-group>
               <!-- 出生年月 picker -->
@@ -33,11 +33,13 @@
               </picker>
               <!-- 年龄 text -->
               <text v-if="item.type == 'text'" class="age">{{age}}岁</text>
+              <!-- 关系text -->
+              <input name="relation" v-if="item.type == 'text_type'" class="slot-input" type="text" placeholder="请输入" :value="relation" />
             </template>
           </uni-list-item>
         </uni-list>
         <view class="tips">年龄无需填写，选择出生年月之后自动计算</view>
-        <button form-type="submit" class="save-btn">保存</button>
+        <button form-type="submit" class="save-btn">{{btn_text}}</button>
       </form>
 
     </view>
@@ -46,21 +48,36 @@
 
 <script>
   import * as jia_data from '../../common/jia_data.js'
+  import { getUserInfo,setUserInfo,getCurrentUserInfo,getFamilyInfo,removeFamilyInfo } from '@/common/utils/auth.js'
   import graceChecker from '../../common/graceChecker.js'
+  import api from '@/common/api/api.js'
   export default {
     name:"rt-userinfo",
     props: {
-      
+      /* 是本人吗，默认为true */
+      isbr: {
+        type: Boolean,
+        default: true
+      },
+      current:{
+        type: Number,
+        default: 9999
+      }
     },
     data() {
       const currentDate = this.getDate({
         format: true
       })
       return {
-        userinfo: [],
+        btnList: [],
         avatarUrl: 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0',
+        nickName: '微信用户',
+        username: '',
         date: currentDate,
-        age: 1
+        age: 1,
+        sex: 0,
+        relation: '亲属朋友',
+        btn_text: '保存'
       };
     },
     computed: {
@@ -72,16 +89,57 @@
       }
     },
     mounted() {
-      this.userinfo = JSON.parse(JSON.stringify(jia_data.my_userinfoList))
+      if(this.isbr){ // 如果是本人
+        this.btnList = JSON.parse(JSON.stringify(jia_data.my_userinfoList))
+        this.setUser()
+      }else{ // 如果是亲属朋友
+        this.btnList = JSON.parse(JSON.stringify(jia_data.family_userinfoList))
+        // 如果不是新增，则为<，下式为true；如果是新增，则是 = ,为false
+        // this.current == getFamilyInfo().length 为 "添加成员"功能
+        if(getFamilyInfo()==null){
+          this.btn_text = '添加'
+          return;
+        }
+        if(this.current < getFamilyInfo().length){
+          let user = getFamilyInfo()[this.current]
+          this.relation = user.relation
+          this.date = user.birthday
+          this.age = user.age
+          this.sex = user.sex
+          this.username = user.username
+        }
+      }
     },
     methods:{
+      setUser(){
+        let user = getUserInfo()
+        this.avatarUrl = user.avatarUrl
+        this.nickName = user.nickName
+        this.date = user.birthday
+        this.age = user.age
+        this.sex = user.sex
+        this.username = user.username
+      },
       onChooseAvatar(e) {
+        var that = this;
+        console.log(e.detail.avatarUrl)
         const avatarUrl = e.detail.avatarUrl
-        this.avatarUrl = avatarUrl
+        wx.uploadFile({
+          // url: 'http://localhost:9999/file/upload',
+          url: 'http://101.43.138.115:9999/file/upload',
+          filePath: avatarUrl,
+          name: 'file',
+          success(res) {
+            that.avatarUrl = res.data
+          },
+          fail(res) {
+            console.log(res)
+          }
+        })
       },
       bindDateChange: function(e) {
           this.date = e.detail.value
-          this.getAge(this.date)
+          this.age = this.getAge(this.date)
       },
       getDate(type) {
         const date = new Date();
@@ -91,7 +149,8 @@
         if(type === 'start'){
           year = year - 90;
         }else if (type === 'end') {
-          year = year + 2;
+          // year = year + 2;
+          year = year;
         }
         month = month > 9 ? month : '0' + month;
         day = day > 9 ? day : '0' + day;
@@ -100,28 +159,125 @@
       getAge(birthday){
         //出生时间 毫秒
         var birthDayTime = new Date(birthday).getTime(); 
+
         //当前时间 毫秒
         var nowTime = new Date().getTime(); 
         //一年毫秒数(365 * 86400000 = 31536000000)
-        this.age = Math.ceil((nowTime-birthDayTime)/31536000000);
+        return Math.ceil((nowTime-birthDayTime)/31536000000);
       },
       save(e){
+        if(this.isbr && this.current == 9999){ // 如果是本人
+          this.saveBr(e)
+        }else{ // 如果是亲属朋友
+          if(this.current == -1)  {
+            this.addType(e);
+            return;
+          }
+          if(this.current < getFamilyInfo().length){ // 修改
+            this.saveType(e)
+          }else{ // 新增
+            this.addType(e)
+          }
+        }
+      },
+      // 保存按钮，本人
+      saveBr(e){
+        var that = this
+        // {"nickName":"Xtutu","username":"jyjy","sex":"1","birthday":"2002-07-04"}
         console.log('form发生了submit事件，携带数据为：' + JSON.stringify(e.detail.value))
         //定义表单规则
         var rule = [
             {name:"username", checkType : "notnull", checkRule:"",  errorMsg:"请填写姓名"},
-            {name:"gender", checkType : "in", checkRule:"1,2",  errorMsg:"请选择性别"},
+            {name:"sex", checkType : "in", checkRule:"1,0",  errorMsg:"请选择性别"},
         ];
         //进行表单检查
         var formData = e.detail.value;
         var checkRes = graceChecker.check(formData, rule);
         if(checkRes){
-            uni.showToast({title:"保存成功", icon:'success'});
-            // console.log(this.avatarUrl,JSON.stringify(e.detail.value),this.age); // http://tmp/VEczLQpNebEo4ee2115517070ea69d41495e992c1417.jpeg {"nickName":"Xtutu","username":"111","gender":"1","birthday":"2011-01-12"} 13
+          var user = getUserInfo()
+          var age1 = that.getAge(formData.birthday)
+          formData.age = age1
+          formData.avatarUrl = that.avatarUrl
+          formData.userid = user.userid
+          console.log("formData :" + JSON.stringify(formData))
+          api.saveUserInfo(formData).then(res=>{
+            if(res.code == 200) {
+              user.age = formData.age
+              user.username = formData.username
+              user.avatarUrl = formData.avatarUrl
+              user.nickName = formData.nickName
+              user.sex = formData.sex
+              user.birthday = formData.birthday
+              setUserInfo(user)
+              uni.$showMsg('保存成功','success')
+            }else{
+              uni.$showMsg('保存失败')
+            }
+          })
         }else{
-            uni.showToast({ title: graceChecker.error, icon: "none" });
+          uni.$showMsg(graceChecker.error);
         }
-      }
+      },
+      // 保存按钮 亲属朋友
+      saveType(e){
+        var that = this
+        console.log('form发生了submit事件，携带数据为：' + JSON.stringify(e.detail.value))
+        //定义表单规则
+        var rule = [
+            {name:"username", checkType : "string", checkRule:"1,4",  errorMsg:"姓名应在1-4个字之间"},
+            {name:"sex", checkType : "in", checkRule:"1,0",  errorMsg:"请选择性别"},
+        ];
+        //进行表单检查
+        var formData = e.detail.value;
+        var checkRes = graceChecker.check(formData, rule);
+        if(checkRes){
+          var user = getUserInfo()
+          var age1 = that.getAge(formData.birthday)
+          formData.age = age1
+          formData.userid = user.userid
+          formData.id = getFamilyInfo()[that.current].id
+          api.editFamily(formData).then(res=>{
+            if(res) {
+              removeFamilyInfo()
+              uni.$showMsg('修改成功!','success')
+            }else{
+              uni.$showMsg('修改失败!')
+            }
+          })
+          
+        }else{
+          uni.$showMsg(graceChecker.error)
+        }
+      },
+      addType(e){
+        var that = this
+        console.log('form发生了submit事件，携带数据为：' + JSON.stringify(e.detail.value))
+        //定义表单规则
+        var rule = [
+            {name:"relation", checkType : "string", checkRule:"1,6",  errorMsg:"亲属关系应在1-6个字之间"},
+            {name:"username", checkType : "string", checkRule:"1,4",  errorMsg:"姓名应在1-4个字之间"},
+            {name:"sex", checkType : "in", checkRule:"1,0",  errorMsg:"请选择性别"},
+        ];
+        //进行表单检查
+        var formData = e.detail.value;
+        var checkRes = graceChecker.check(formData, rule);
+        if(checkRes){
+          var user = getUserInfo()
+          var age1 = that.getAge(formData.birthday)
+          formData.age = age1
+          formData.userid = user.userid    
+          api.addFamily(formData).then(res=>{
+            if(res) {
+              removeFamilyInfo()
+              uni.$showMsg('添加成功!','success')
+            }else{
+              uni.$showMsg('添加失败!')
+            }
+          })
+        }else{
+          uni.$showMsg(graceChecker.error)
+        }
+      },
     }
   }
 </script>

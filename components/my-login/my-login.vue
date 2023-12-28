@@ -27,22 +27,22 @@
                 form.nickName = UserProfileRes.userInfo.nickName; //用户微信名
                 form.sex = UserProfileRes.userInfo.gender;//性别
                 api.login(form).then(res=>{
-                  console.log('wxlogin Success:',res);
-                  if(res.data.state){
-                    uni.hideLoading()
-                    that.userInfo = res.data
-                    setToken(res.data.token)
-                    setUserInfo(res.data)
-                    that.$emit('islogin',res.data) // 传给父组件
+                  if(res.userInfo.userid!= null){
+                    that.userInfo = res.userInfo
+                    setToken(res.token)
+                    setUserInfo(res.userInfo)
+                    that.$emit('islogin',res) // 传给父组件
                   }else{
-                    uni.$showMsg()
+                    uni.$showMsg('登录失败')
                   }
                 }).catch(err=>{
-                  console.log('wxlogin Fail:',err);
+                  uni.$showMsg('登录失败')
                 })
               },
               fail(err) {
                 console.log(err);
+              },complete() {
+                uni.hideLoading()
               }
             })
           },
@@ -70,7 +70,7 @@
       color: #6a6a6a;
     }
     .btn {
-      font-size: 14px;
+      // font-size: 14px;
       border-radius: 40rpx;
     }
   }

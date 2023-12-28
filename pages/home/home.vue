@@ -3,7 +3,7 @@
     <!-- 标题栏 -->
     <uni-nav-bar fixed status-bar backgroundColor="#23EBB9" title="首页" />
     <!-- 通告栏 -->
-    <uni-notice-bar scrollable showClose showIcon :text="notice"></uni-notice-bar>
+    <!-- <uni-notice-bar scrollable showClose showIcon :text="notice"></uni-notice-bar> -->
      <!-- 轮播图 -->
      <swiper :indicator-dots="true" :autoplay="true" :interval="3000" :duration="1000" :circular="true">
        <swiper-item v-for="(item, i) in swiperList" :key="i">
@@ -21,8 +21,6 @@
          <btn-card :header="item.title" :footer="item.footer" :img="item.img" :menu="item.menu"></btn-card>
        </view>
      </view>
-     
-     
   </view>
 </template>
 

@@ -16,7 +16,8 @@
 <script>
   import timeline from '../../components/chenbin-timeline/timeLine.vue'
   import timelineItem from '../../components/chenbin-timeline/timelineItem.vue'
-  import * as jia_data from '../../common/jia_data.js'
+  import api from '@/common/api/api.js'
+  import {getUserInfo} from '@/common/utils/auth.js'
   export default {
     components:{
       timeline,
@@ -28,7 +29,7 @@
       };
     },
     onLoad() {
-      this.wqsjList = JSON.parse(JSON.stringify(jia_data.my_wqsjList))
+      this.getWqsj()
     },
     methods: {
       back() {
@@ -41,7 +42,17 @@
           uni.$showMsg('您好啊')
           return
         }
-        uni.navigateTo({url: url})
+        console.log(url);
+        uni.navigateTo({url: '/subpkg/' + url})
+      },
+      getWqsj(){
+        var that = this
+        var user = getUserInfo()
+        let userid =  user.userid
+        api.getWqsj(userid).then(res=>{
+          let arr = res.data
+          that.wqsjList = arr
+        })
       }
     }
   }

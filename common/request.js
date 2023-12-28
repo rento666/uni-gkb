@@ -1,7 +1,9 @@
 // 全局请求封装
 import { getToken } from '@/common/utils/auth.js'
 export default (url, method, params) => {
-  const baseUrl = 'http://localhost:80/wxapi'
+  // http://localhost:80/wxapi
+  // const baseUrl = 'http://localhost:9999'
+  const baseUrl = 'http://101.43.138.115:9999'
   const token = getToken()
   const header = {
     // 'Authorization': 'Bearer ' + token,
@@ -9,7 +11,7 @@ export default (url, method, params) => {
     "Content-Type": "application/json; charset=UTF-8"
   }
 	uni.showLoading({ title: '加载中' })
-	if(!token && url !='/login'){
+	if(!token && url !='/user/login'){
 		// 执行没有登录的逻辑
      uni.$showMsg()
 		return

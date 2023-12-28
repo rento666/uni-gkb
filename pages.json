@@ -89,7 +89,7 @@
                 
                 }
                 ,{
-                    "path" : "my_home/my_home",
+                    "path" : "my_wqsj/my_wqsj",
                     "style" :                                                                                    
                 {
                     "navigationBarTitleText": "",
@@ -98,7 +98,34 @@
                 
                 }
                 ,{
-                    "path" : "my_wqsj/my_wqsj",
+                    "path" : "sm_solution/sm_solution",
+                    "style" :                                                                                    
+                {
+                    "navigationBarTitleText": "",
+                    "enablePullDownRefresh": false
+                }
+                
+                }
+                ,{
+                    "path" : "answer/answer",
+                    "style" :                                                                                    
+                {
+                    "navigationBarTitleText": "",
+                    "enablePullDownRefresh": false
+                }
+                
+                }
+                ,{
+                    "path" : "my_family/my_family",
+                    "style" :                                                                                    
+                {
+                    "navigationBarTitleText": "",
+                    "enablePullDownRefresh": false
+                }
+                
+                },
+                {
+                    "path" : "add_article/add_article",
                     "style" :                                                                                    
                 {
                     "navigationBarTitleText": "",

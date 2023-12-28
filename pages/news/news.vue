@@ -2,33 +2,43 @@
   <view>
     <!-- 标题栏 -->
     <uni-nav-bar fixed status-bar backgroundColor="#23EBB9" title="资讯" />
-          <!-- <uni-dateformat class="time" :date="item.time" :threshold="[60000,3600000 * 24 * 365]" :format="'yyyy-MM-dd hh:mm'"></uni-dateformat> -->
-    <!-- 文章栏 -->
-    <!-- <view style="padding: 10px 0 20px;" v-for="item in articles" :key="item.id">
-
-      <fui-card src="/static/tab_icons/my.png" imageRadius="50%" :title="item.author" color="#0055ff" :tag="item.time" :headerLine="false" showBorder @click="onClick(item.id)">
-        <view class="fui-list__item">
-          <image class="fui-cover" :src="cover" mode="widthFix">
-          </image>
-          <view class="fui-list__title">{{item.cover}}</view>
-        </view>
-      </fui-card>
-    </view> -->
     <view style="padding: 10px 0;" v-for="item in articles" :key="item.id">
-      <article-card :url="'/subpkg/articles_detail/articles_detail?id=' + item.id" 
-                    :title="item.cover" :author="item.author" mode="single" 
-                    :path="item.img" :publishTime="item.time"></article-card>
+      <view class="article-card">
+        <navigator class="navigator" hover-class="navigator-hover" :url="'/subpkg/articles_detail/articles_detail?id=' + item.id">
+          <view class="img">
+            <image :src="item.cover" mode="aspectFill"></image>
+          </view>
+          <view class="title-time">
+            <text class="title">{{item.title}}</text>
+            <text>{{item.outline}}</text>
+            <view class="subtitle">
+              <text style="margin-right: 10px;">{{item.user}}</text>
+              <text>{{item.time}}</text>
+            </view>
+          </view>
+        </navigator>
+      </view>
+      <view class="addBtn" @click="toAddArticle()">
+        <uni-icons type="plus" size="40"></uni-icons>
+      </view>
     </view>
-
+    <view v-if="articles.length == 0">
+      <o-empty />
+      <view class="addBtn" @click="toAddArticle()">
+        <uni-icons type="plus" size="40"></uni-icons>
+      </view>
+    </view>
   </view>
 </template>
 
 <script>
-  import * as j_data from '../../common/jia_data.js'
+  import api from '@/common/api/api.js'
   import timer from '../../common/timeUtils.js'
+  import {getArticle,setArticle,removeArticle} from '@/common/utils/auth.js'
   export default {
     data() {
       return {
+        isLoading: false,
         articles: [],
         time: '10小时前',
         cover: 'https://web-assets.dcloud.net.cn/unidoc/zh/shuijiao.jpg',
@@ -36,10 +46,18 @@
         customHeight: 0,
         navigationBarHeight: 0,
         navHeight: 0,
+        pageNum: 1,
+        pageSize: 10,
       };
     },
     onLoad() {
-      this.getArticle()
+      if(!getArticle()){
+        this.pageNum = 1
+        this.pageSize = 10
+        this.getArticle()
+      }else{
+        this.articles = getArticle()
+      }
     },
     // 触底事件
     onReachBottom() {
@@ -47,96 +65,94 @@
     },
     // 下拉刷新事件
     onPullDownRefresh() {
-      //   // 1. 重置关键数据
-      //   this.queryObj.pagenum = 1
-      //   this.total = 0
-      //   this.isloading = false
-      //   this.goodsList = []
-      
-      //   // 2. 重新发起请求
-      //   this.getGoodsList(() => uni.stopPullDownRefresh())
+      console.log("下拉begin...")
+      if(this.isLoading){
+        return;
+      }
+      console.log("下拉ing...")
+      removeArticle()
       this.getArticle()
+      setTimeout(function(){
+        if(getArticle()){
+          uni.$showMsg('刷新成功')
+          uni.stopPullDownRefresh()
+        }else{
+          uni.$showMsg('获取文章失败')
+          uni.stopPullDownRefresh()
+        }
+      },1000)
+      console.log("下拉end...")
     },
     methods: {
       getArticle(){
-        // 不直接使用 let data = j_data.news_articleCover ，是因为那样不是深拷贝，对象的地址一致，不利于操作
-        let data = JSON.parse(JSON.stringify(j_data.news_articleCover))
-
-        data.forEach(item => {
-          item.time = timer(item.time)
+        var that = this
+        that.isLoading = true
+        api.getArticle(this.pageNum,this.pageSize).then(res=>{
+          let data = res.records
+          if(data.length>0){
+            data.forEach(item => {
+              item.time = timer(item.time)
+            })
+            this.articles = data
+            setArticle(data)
+          }
+        }).finally(res=>{
+          that.isLoading = false
         })
-        this.articles = data
       },
-    	actionsClick(text){
-    		uni.showToast({
-    			title:text,
-    			icon:'none'
-    		})
-    	},
-      getNarHeight(){
-        //状态栏高度
-        this.iStatusBarHeight = uni.getSystemInfoSync().statusBarHeight;
-        //胶囊高度
-        // 获取微信胶囊的位置信息 width,height,top,right,left,bottom
-        this.customHeight = wx.getMenuButtonBoundingClientRect()
-         // 导航栏高度(标题栏高度) = 胶囊高度 + (顶部距离 - 状态栏高度) * 2
-        this.navigationBarHeight = this.customHeight.height + (this.customHeight.top - this.iStatusBarHeight) * 2
-        // 总体高度 = 状态栏高度 + 导航栏高度
-        this.navHeight = this.navigationBarHeight + this.iStatusBarHeight
-        console.log(this.iStatusBarHeight);
-        console.log(this.customHeight);
-        console.log(this.navigationBarHeight);
-        console.log(this.navHeight);
-      }
+    toAddArticle(){
+      uni.navigateTo({url: '/subpkg/add_article/add_article'})
+    }
     }
   }
 </script>
 
 <style lang="scss">
-  .time {
-    display: flex;
-    text-align: center;
-    justify-content: center;
-    margin-top: 20rpx;
+  .article-card {
+    background: #fff;
+    margin: 0;
+    margin: 10px 15px;
+    box-shadow:0rpx 2rpx 5rpx 5rpx #c8c3c3;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .navigator-hover{
+    opacity: 0.9;
+    background: #ededed;
+  }
+  .img {
+    height: 250rpx;
+    width: 100%;
+    image {
+      height: 100%;
+      width: 100%;
+    }
+  }
+  .title-time{
+    padding: 10px;
+  }
+  .title{
+    font-size: 36rpx;
+    font-weight: 700;
+    /* 定义为自适应布局   */
+      display: -webkit-box;       
+      /* 超出部分隐藏 */
+      overflow: hidden;
+      /* 竖直方向的超出隐藏 */
+      -webkit-box-orient: vertical;  
+      /* 限制最多1行 */
+      -webkit-line-clamp: 1;
+  }
+  .subtitle{
+    margin-top: 10px;
     font-size: 24rpx;
     font-weight: 300;
-    color: #666;
+    color: #999;
   }
-	.card-actions {
-		display: flex;
-		flex-direction: row;
-		justify-content: space-around;
-		align-items: center;
-		height: 45px;
-		border-top: 1px #eee solid;
-	}
-	.card-actions-item {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-	}
-	.card-actions-item-text {
-		font-size: 12px;
-		color: #666;
-		margin-left: 5px;
-	}
-  .fui-list__item {
-  		position: relative;
-  	}
-  	.fui-cover {
-  		width: 100%;
-  		height: 385rpx;
-  		display: block;
-  	}
-  	.fui-list__title {
-  		position: absolute;
-  		left: 0;
-  		bottom: 0;
-  		color: #fff;
-  		font-weight: 500;
-  		padding: 24rpx 20rpx;
-  		box-sizing: border-box;
-  		background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.6));
-  	}
-
+  .addBtn {
+    z-index: 999;
+    position: fixed;
+    bottom: 50rpx;
+    right: 30rpx;
+  }
 </style>
